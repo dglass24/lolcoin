@@ -1,14 +1,17 @@
 import hashlib as hasher
 
-#### BLOCK ####
-
 class Block:
-    def __init__(self, index, timestamp, data, previous_hash):
+    def __init__(self, index, timestamp, data, previous_hash, hash=None):
         self.index = index
         self.timestamp = timestamp
         self.data = data
         self.previous_hash = previous_hash
-        self.hash = self.hash_block()
+
+        # we could be setting a new blockchain for consensus. If we already have the hash don't calculate a new one
+        if hash:
+            self.hash = hash
+        else:
+            self.hash = self.hash_block()
 
     def hash_block(self):
         sha = hasher.sha256()

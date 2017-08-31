@@ -1,8 +1,6 @@
 from block import Block
 import datetime as date
 
-#### BLOCK ####
-
 class Blockchain:
     def __init__(self):
         self.blockchain = [self.create_genesis_block()]
@@ -17,3 +15,17 @@ class Blockchain:
         data = {'transactions': []}
         last_hash = last_block.hash
         return Block(index, timestamp, data, last_hash)
+
+    def set(self, blockchain_dict):
+        self.blockchain = []
+        for block_dict in blockchain_dict:
+            self.blockchain.append(
+                Block(block_dict['index'],
+                      block_dict['timestamp'],
+                      block_dict['data'],
+                      None,
+                      block_dict['hash']
+                      )
+            )
+
+        print self.blockchain

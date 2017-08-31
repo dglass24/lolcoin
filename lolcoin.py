@@ -1,4 +1,5 @@
 import datetime as date
+import requests
 import json
 
 from flask import Flask
@@ -6,43 +7,22 @@ from flask import request
 
 from src.block import Block
 from src.blockchain import Blockchain
+from src.network import Network
 from src.proof_of_work import ProofOfWork
+from src.config import Config
 
 node = Flask(__name__)
 
+config = Config()
+
+# TODO: Download blockchain on initial startup and store on disk
 blockchain = Blockchain()
 
-##### SERVER #####
+# TODO: Add dnsseed to automatically discover all peers in network
+network = Network()
 
-peer_nodes = []
 transactions = []
 miner_address = 'f38c966908390d7fdffcbbb44b8e0439aa34fd71f1cbdec1cc7d4eecf19515f7'
-
-def broadcast_new_block():
-    for node_url in peer_nodes:
-        request.get(node_url + '/blocks').content
-
-def find_new_chains():
-    # retrieve blockchains from each peer node
-    other_chains = []
-    for node_url in peer_nodes:
-        peer_blockchain = request.get(node_url + '/blocks').content
-        peer_blockchain = json.loads(peer_blockchain)
-        other_chains.append(peer_blockchain)
-    return other_chains
-
-def consensus():
-    global blockchain
-
-    # Get blockchains from other peers
-    other_blockchains = find_new_chains()
-
-    # If our chain isn't the longest then we store the longest chain
-    longest = blockchain
-    for chain in other_blockchains:
-        if len(chain) > len(blockchain.blockchain):
-            longest = chain
-    blockchain.blockchain = longest
 
 @node.route('/txn', methods=['POST'])
 def transaction():
@@ -50,10 +30,6 @@ def transaction():
         global transactions
         new_txn = request.get_json()
         transactions.append(new_txn)
-        print 'New transaction'
-        print 'FROM: {}'.format(new_txn['from'])
-        print 'TO: {}'.format(new_txn['to'])
-        print 'AMOUNT: {}'.format(new_txn['amount'])
         return 'Transaction submission success\n'
 
 @node.route('/mine', methods=['GET'])
@@ -97,6 +73,9 @@ def mine():
 
     blockchain.blockchain.append(new_block)
 
+    # notify all nodes in network of new block
+    network.broadcast(blockchain.blockchain)
+
     return json.dumps({
         'index': new_block.index,
         'timestamp': str(new_block.timestamp),
@@ -104,21 +83,16 @@ def mine():
         'hash': new_block.hash,
     })
 
-@node.route('/blocks', methods=['GET'])
-def blocks():
-    # the blockchain is a list of Block objects. Convert the blockchain to a list of dictionaries
-    # so we can serialize the blockchain to json
-    blockchain_list = []
-    for block in blockchain.blockchain:
-        blockchain_list.append({
-            'index': block.index,
-            'timestamp': str(block.timestamp),
-            'data': block.data,
-            'hash': block.hash
-        })
-    return json.dumps(blockchain_list)
+@node.route('/blockchainupdate', methods=['POST'])
+def post_newblock():
+    if request.method == 'POST':
+        print '*** blockchain update'
+        data = json.loads(request.get_json(force=True))
+        blockchain.set(data)
+    return 'ok'
 
-node.run()
+if __name__ == '__main__':
+    node.run(host=config.get_option('host'),port=config.get_option('port'))
 
 
 
