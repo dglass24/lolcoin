@@ -1,5 +1,4 @@
 import datetime as date
-import requests
 import json
 
 from flask import Flask
@@ -10,6 +9,8 @@ from src.blockchain import Blockchain
 from src.network import Network
 from src.proof_of_work import ProofOfWork
 from src.config import Config
+
+from src.logger import logger
 
 node = Flask(__name__)
 
@@ -95,10 +96,12 @@ def post_newblock():
 def post_addhost():
     if request.method == 'POST':
         data = json.loads(request.get_json(force=True))
+        logger.info('received new node from dnsseeder')
         network.add_node(data['host'])
     return 'ok'
 
 if __name__ == '__main__':
+    logger.info('starting up node at {}'.format(config.get_host_url()))
     network.register_with_dnsseeder()
     node.run(host=config.get('host'), port=config.get('port'))
 

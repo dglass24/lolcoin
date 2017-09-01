@@ -1,5 +1,5 @@
-from .node import Node
 from .config import Config
+from .logger import logger
 import requests
 import json
 
@@ -7,18 +7,21 @@ config = Config()
 
 class Network:
     def __init__(self):
-        self.peer_nodes = []
+        self.peer_nodes = set()
 
     def get_nodes(self):
         return self.peer_nodes
 
-    def add_node(self, node):
-        self.peer_nodes.append(node)
-        print 'adding node {}'.format(node)
-        print 'now nodes are:'
-        print self.peer_nodes
+    def add_nodes(self, peers):
+        logger.info('adding peer nodes')
+        for peer in peers:
+            self.add_node(peer)
+        logger.info('done adding peer nodes')
 
-        return self.peer_nodes
+    def add_node(self, node):
+        if node not in self.peer_nodes:
+            self.peer_nodes.add(node)
+            logger.info('added peer node {}'.format(node))
 
     def broadcast(self, blockchain):
         # the blockchain is a list of Block objects. Convert the blockchain to a list of dictionaries
@@ -39,10 +42,16 @@ class Network:
             requests.post(node + '/blockchainupdate', json=json.dumps(blockchain_list))
 
     def register_with_dnsseeder(self):
-        data = requests.post('{}/register'.format(config.get('dnsseeder_url')),
-                             headers={'Referer': config.get_host_url()}).content
-        data = json.loads(data)
-        print data
-        self.peer_nodes = data
+        register_url = '{}/register'.format(config.get('dnsseeder_url'))
+        logger.info('registering with dnsseeder at {}'.format(register_url))
 
-        # TODO: Log which peers were added
+        peers = requests.post(register_url, headers={'Referer': config.get_host_url()}).content
+        peers = json.loads(peers)
+
+        logger.info('registered with dnsseeder')
+        logger.info('received {} peer nodes from dnsseeder'.format(len(peers)))
+
+        if len(peers) == 0:
+            return
+
+        self.add_nodes(peers)
