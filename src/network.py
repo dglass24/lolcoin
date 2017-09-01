@@ -3,20 +3,21 @@ from .config import Config
 import requests
 import json
 
+config = Config()
+
 class Network:
     def __init__(self):
-        self.peer_nodes = [Node('http://127.0.0.1:5555'), Node('http://127.0.0.1:5000')]
-
-        config = Config()
-        for peer_node in self.peer_nodes:
-            # server will remove itself from peer network list
-            if peer_node.url == 'http://{}:{}'.format(config.get_option('host'), config.get_option('port')):
-                self.peer_nodes.remove(peer_node)
-
-        print self.peer_nodes
-
+        self.peer_nodes = []
 
     def get_nodes(self):
+        return self.peer_nodes
+
+    def add_node(self, node):
+        self.peer_nodes.append(node)
+        print 'adding node {}'.format(node)
+        print 'now nodes are:'
+        print self.peer_nodes
+
         return self.peer_nodes
 
     def broadcast(self, blockchain):
@@ -35,4 +36,13 @@ class Network:
             })
 
         for node in self.get_nodes():
-            requests.post(node.url + '/blockchainupdate', json=json.dumps(blockchain_list))
+            requests.post(node + '/blockchainupdate', json=json.dumps(blockchain_list))
+
+    def register_with_dnsseeder(self):
+        data = requests.post('{}/register'.format(config.get('dnsseeder_url')),
+                             headers={'Referer': config.get_host_url()}).content
+        data = json.loads(data)
+        print data
+        self.peer_nodes = data
+
+        # TODO: Log which peers were added

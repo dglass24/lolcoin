@@ -91,8 +91,16 @@ def post_newblock():
         blockchain.set(data)
     return 'ok'
 
+@node.route('/addhost', methods=['POST'])
+def post_addhost():
+    if request.method == 'POST':
+        data = json.loads(request.get_json(force=True))
+        network.add_node(data['host'])
+    return 'ok'
+
 if __name__ == '__main__':
-    node.run(host=config.get_option('host'),port=config.get_option('port'))
+    network.register_with_dnsseeder()
+    node.run(host=config.get('host'), port=config.get('port'))
 
 
 
