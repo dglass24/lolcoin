@@ -22,6 +22,11 @@ class Network:
             self.peer_nodes.add(node)
             logger.info('added peer node {}'.format(node))
 
+    def remove_node(self, node):
+        if node in self.peer_nodes:
+            self.peer_nodes.remove(node)
+            logger.info('removed peer node {}'.format(node))
+
     def broadcast_new_block(self, new_block):
         for node in self.get_nodes():
             requests.post(node + '/newblock',
@@ -51,6 +56,16 @@ class Network:
             return
 
         self.add_nodes(peers)
+
+    def deregister_with_dnsseeder(self):
+        deregister_url = '{}/deregister'.format(config.get('dnsseeder_url'))
+        logger.info('trying to connect to dnsseeder at {}'.format(deregister_url))
+
+        try:
+            requests.post(deregister_url, headers={'Referer': config.get_host_url()})
+            logger.info('deregistered with dnsseeder')
+        except:
+            logger.info('could not deregister with dnsseeder')
 
 config = Config()
 network = Network()

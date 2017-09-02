@@ -107,6 +107,13 @@ def post_addhost():
         network.add_node(data['host'])
     return 'ok'
 
+@node.route('/removehost', methods=['POST'])
+def post_removehost():
+    if request.method == 'POST':
+        data = json.loads(request.get_json(force=True))
+        network.remove_node(data['host'])
+    return 'ok'
+
 if __name__ == '__main__':
     logger.info('starting up node at {}'.format(config.get_host_url()))
 
@@ -117,6 +124,9 @@ if __name__ == '__main__':
     blockchain.resolve_blockchain()
 
     node.run(host=config.get('host'), port=config.get('port'))
+
+    # deregister with dnsseeder when server is killed
+    network.deregister_with_dnsseeder()
 
 
 

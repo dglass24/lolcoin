@@ -66,10 +66,3 @@ class Blockchain:
         # Being lazy here. This probably needs to be refactored at some point
         line = subprocess.check_output(['tail', '-1', blockchain_path])
         return json.loads(line)
-
-    def next_block(self, last_block):
-        index = last_block.index + 1
-        timestamp = date.datetime.now()
-        data = {'transactions': []}
-        last_hash = last_block.hash
-        return Block(index, timestamp, data, last_hash)

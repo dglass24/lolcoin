@@ -29,6 +29,19 @@ def post_register():
 
         return jsonify(list(existing_peers))
 
+@node.route('/deregister', methods=['POST'])
+def post_deregister():
+    if request.method == 'POST':
+        peers.discard(request.referrer)
+
+        # broadcast new peer to all existing peers
+        for peer in peers:
+            try:
+                requests.post(peer + '/removehost', json=json.dumps({'host': request.referrer}))
+            except:
+                # TODO: log failure
+                pass
+
 if __name__ == '__main__':
     node.run(host=config.get('host'), port=config.get('port'))
 
