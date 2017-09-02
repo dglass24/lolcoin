@@ -8,7 +8,7 @@ logger = logging.getLogger('lolcoin_miner')
 logger.setLevel(logging.DEBUG)
 
 # create file handler which logs even debug messages
-fh = logging.FileHandler(config.get('logfile'))
+fh = logging.FileHandler(config.get('debug_path'))
 fh.setLevel(logging.DEBUG)
 
 # create console handler with a higher log level

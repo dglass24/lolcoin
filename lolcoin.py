@@ -6,7 +6,7 @@ from flask import request
 
 from src.block import Block
 from src.blockchain import Blockchain
-from src.network import Network
+from src.network import network
 from src.proof_of_work import ProofOfWork
 from src.config import Config
 
@@ -16,14 +16,12 @@ node = Flask(__name__)
 
 config = Config()
 
-# TODO: Download blockchain on initial startup and store on disk
-blockchain = Blockchain()
-
-# TODO: Add dnsseed to automatically discover all peers in network
-network = Network()
-
 transactions = []
 miner_address = 'f38c966908390d7fdffcbbb44b8e0439aa34fd71f1cbdec1cc7d4eecf19515f7'
+
+@node.route('/ping', methods=['GET'])
+def get_pingt():
+    return 'pong'
 
 @node.route('/txn', methods=['POST'])
 def transaction():
@@ -38,8 +36,8 @@ def mine():
     global transactions
 
     # get the last proof of work
-    last_block = blockchain.blockchain[len(blockchain.blockchain) - 1]
-    last_proof = last_block.data['proof_of_work']
+    last_block = blockchain.get_most_recent_block()
+    last_proof = last_block['data']['proof_of_work']
 
     # find the new proof of work for the current block being mined
     # The program will hang here until the proof of work is found
@@ -57,25 +55,25 @@ def mine():
         'proof_of_work': proof,
         'transactions': list(transactions)
     }
-    new_block_index = last_block.index + 1
-    new_block_timestamp = date.datetime.now()
-    last_block_hash = last_block.hash
+    new_block_index = last_block['index'] + 1
+    new_block_timestamp = str(date.datetime.now())
+    last_block_hash = last_block['hash']
 
     # create the new block
     new_block = Block(
         new_block_index,
         new_block_timestamp,
-        new_block_data,
-        last_block_hash
+        new_block_data
     )
+    new_block.hash_block(last_block_hash)
 
     # once we have a block we can clear the transactions
     transactions = []
 
-    blockchain.blockchain.append(new_block)
+    blockchain.write_block_to_disk(new_block)
 
     # notify all nodes in network of new block
-    network.broadcast(blockchain.blockchain)
+    network.broadcast_new_block(new_block)
 
     return json.dumps({
         'index': new_block.index,
@@ -84,12 +82,21 @@ def mine():
         'hash': new_block.hash,
     })
 
-@node.route('/blockchainupdate', methods=['POST'])
+@node.route('/newblock', methods=['POST'])
 def post_newblock():
     if request.method == 'POST':
-        print '*** blockchain update'
         data = json.loads(request.get_json(force=True))
-        blockchain.set(data)
+        logger.info('Received new block from {}'.format(request.referrer))
+
+        # load block object from json data
+        new_block = Block(
+            data['index'],
+            data['timestamp'],
+            data['data'],
+            data['hash']
+        )
+
+        blockchain.write_block_to_disk(new_block)
     return 'ok'
 
 @node.route('/addhost', methods=['POST'])
@@ -102,7 +109,13 @@ def post_addhost():
 
 if __name__ == '__main__':
     logger.info('starting up node at {}'.format(config.get_host_url()))
+
+    # register with dnsseeder so other peers can be notified that this node is online
     network.register_with_dnsseeder()
+
+    blockchain = Blockchain()
+    blockchain.resolve_blockchain()
+
     node.run(host=config.get('host'), port=config.get('port'))
 
 

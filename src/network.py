@@ -2,8 +2,7 @@ from .config import Config
 from .logger import logger
 import requests
 import json
-
-config = Config()
+import time
 
 class Network:
     def __init__(self):
@@ -23,30 +22,27 @@ class Network:
             self.peer_nodes.add(node)
             logger.info('added peer node {}'.format(node))
 
-    def broadcast(self, blockchain):
-        # the blockchain is a list of Block objects. Convert the blockchain to a list of dictionaries
-        # so we can serialize the blockchain to json
-        #
-        # TODO: Find better way to serialize list of Block objects to json
-        #
-        blockchain_list = []
-        for block in blockchain:
-            blockchain_list.append({
-                'index': block.index,
-                'timestamp': str(block.timestamp),
-                'data': block.data,
-                'hash': block.hash
-            })
-
+    def broadcast_new_block(self, new_block):
         for node in self.get_nodes():
-            requests.post(node + '/blockchainupdate', json=json.dumps(blockchain_list))
+            requests.post(node + '/newblock',
+                          json=new_block.to_json(),
+                          headers={'Referer': config.get_host_url()})
 
     def register_with_dnsseeder(self):
-        register_url = '{}/register'.format(config.get('dnsseeder_url'))
-        logger.info('registering with dnsseeder at {}'.format(register_url))
+        registered = False
 
-        peers = requests.post(register_url, headers={'Referer': config.get_host_url()}).content
-        peers = json.loads(peers)
+        while not registered:
+            register_url = '{}/register'.format(config.get('dnsseeder_url'))
+            logger.info('trying to connect to dnsseeder at {}'.format(register_url))
+
+            try:
+                peers = requests.post(register_url, headers={'Referer': config.get_host_url()}).content
+                peers = json.loads(peers)
+                registered = True
+            except:
+                logger.info('could not connect to dnsseeder, retrying in 30 seconds')
+                time.sleep(30)
+
 
         logger.info('registered with dnsseeder')
         logger.info('received {} peer nodes from dnsseeder'.format(len(peers)))
@@ -55,3 +51,6 @@ class Network:
             return
 
         self.add_nodes(peers)
+
+config = Config()
+network = Network()
