@@ -31,8 +31,12 @@ class Network:
     def broadcast_new_block(self, new_block):
         for node in self.get_nodes():
             requests.post('http://' + node + '/newblock',
-                          json=new_block.to_json(),
-                          headers={'Referer': config.get_host_url()})
+                          json=new_block.to_json())
+
+    def broadcast_new_transaction(self, new_txn):
+        for node in self.get_nodes():
+            requests.post('http://' + node + '/receivetxn',
+                          json=new_txn)
 
     def get_max_block_height(self):
         max_height = 0

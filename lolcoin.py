@@ -5,36 +5,23 @@ from flask import Flask
 from flask import request
 
 from src.block import Block
-from src.blockchain import Blockchain
+from src.blockchain import blockchain
 from src.network import network
+from src.transactions import transactions
 from src.proof_of_work import ProofOfWork
-from src.config import Config
-
+from src.config import config
 from src.logger import logger
 
 node = Flask(__name__)
 
-config = Config()
-
-transactions = []
 miner_address = 'f38c966908390d7fdffcbbb44b8e0439aa34fd71f1cbdec1cc7d4eecf19515f7'
 
 @node.route('/ping', methods=['GET'])
 def get_ping():
     return 'pong\n'
 
-@node.route('/txn', methods=['POST'])
-def transaction():
-    if request.method == 'POST':
-        global transactions
-        new_txn = request.get_json()
-        transactions.append(new_txn)
-        return 'Transaction submission success\n'
-
 @node.route('/mine', methods=['GET'])
 def mine():
-    global transactions
-
     # get the last proof of work
     last_block = blockchain.get_most_recent_block()
     last_proof = last_block['data']['proof_of_work']
@@ -45,7 +32,7 @@ def mine():
 
     # once we find a valid proof of work, we know we can mine a block so
     # we reward the miner by adding a transaction
-    transactions.append({
+    txns.add_transaction({
         'from': 'network',
         'to': miner_address,
         'amount': 1
@@ -53,7 +40,7 @@ def mine():
 
     new_block_data = {
         'proof_of_work': proof,
-        'transactions': list(transactions)
+        'transactions': txns.get_transactions()
     }
     new_block_index = last_block['index'] + 1
     new_block_timestamp = str(date.datetime.now())
@@ -67,10 +54,8 @@ def mine():
     )
     new_block.hash_block(last_block_hash)
 
-    # once we have a block we can clear the transactions
-    transactions = []
-
     blockchain.write_block_to_disk(new_block)
+    txns.clear_transactions()
 
     # notify all nodes in network of new block
     network.broadcast_new_block(new_block)
@@ -81,6 +66,21 @@ def mine():
         'data': new_block.data,
         'hash': new_block.hash,
     })
+
+@node.route('/addtxn', methods=['POST'])
+def post_add_transaction():
+    if request.method == 'POST':
+        new_txn = request.get_json()
+        txns.add_transaction(new_txn)
+        network.broadcast_new_transaction(new_txn)
+        return 'Transaction submission success\n'
+
+@node.route('/receivetxn', methods=['POST'])
+def post_receive_transaction():
+    if request.method == 'POST':
+        new_txn = request.get_json()
+        txns.add_transaction(new_txn)
+        return 'ok'
 
 @node.route('/blockheight', methods=['GET'])
 def get_blockheight():
@@ -101,6 +101,7 @@ def post_newblock():
         )
 
         blockchain.write_block_to_disk(new_block)
+        txns.clear_transactions()
     return 'ok'
 
 @node.route('/getblock', methods=['POST'])
@@ -132,9 +133,10 @@ if __name__ == '__main__':
     # register with dnsseeder so other peers can be notified that this node is online
     network.register_with_dnsseeder()
 
-    blockchain = Blockchain()
     blockchain.resolve_blockchain()
     blockchain.validate_genesis_block()
+
+    txns = transactions
 
     node.run(host=config.get('host'), port=config.get('port'))
 
