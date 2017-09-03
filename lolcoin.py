@@ -82,6 +82,10 @@ def mine():
         'hash': new_block.hash,
     })
 
+@node.route('/blockheight', methods=['GET'])
+def get_blockheight():
+    return str(blockchain.get_current_block_height())
+
 @node.route('/newblock', methods=['POST'])
 def post_newblock():
     if request.method == 'POST':
@@ -98,6 +102,14 @@ def post_newblock():
 
         blockchain.write_block_to_disk(new_block)
     return 'ok'
+
+@node.route('/getblock', methods=['POST'])
+def post_getblocks():
+    if request.method == 'POST':
+        data = json.loads(request.get_json())
+        block_height = data['height']
+        block = blockchain.get_block_by_height(block_height)
+        return block
 
 @node.route('/addhost', methods=['POST'])
 def post_addhost():
@@ -122,6 +134,7 @@ if __name__ == '__main__':
 
     blockchain = Blockchain()
     blockchain.resolve_blockchain()
+    blockchain.validate_genesis_block()
 
     node.run(host=config.get('host'), port=config.get('port'))
 

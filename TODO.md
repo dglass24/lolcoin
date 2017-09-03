@@ -1,6 +1,5 @@
 # TODO
 
-1. Dockerize
-2. Initial blockchain download
-3. Broadcasting transactions
-4. Mine based on cron instead of request
+1. Switch to gunicorn for server
+2. Broadcasting transactions
+3. Mine based on cron instead of request
