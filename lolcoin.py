@@ -20,8 +20,8 @@ transactions = []
 miner_address = 'f38c966908390d7fdffcbbb44b8e0439aa34fd71f1cbdec1cc7d4eecf19515f7'
 
 @node.route('/ping', methods=['GET'])
-def get_pingt():
-    return 'pong'
+def get_ping():
+    return 'pong\n'
 
 @node.route('/txn', methods=['POST'])
 def transaction():
@@ -86,7 +86,7 @@ def mine():
 def post_newblock():
     if request.method == 'POST':
         data = json.loads(request.get_json(force=True))
-        logger.info('Received new block from {}'.format(request.referrer))
+        logger.info('Received new block from {}'.format(request.remote_addr))
 
         # load block object from json data
         new_block = Block(

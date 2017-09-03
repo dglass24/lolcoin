@@ -37,11 +37,11 @@ class Network:
         registered = False
 
         while not registered:
-            register_url = '{}/register'.format(config.get('dnsseeder_url'))
+            register_url = '{}/register'.format(config.get_dnsseeder_url())
             logger.info('trying to connect to dnsseeder at {}'.format(register_url))
 
             try:
-                peers = requests.post(register_url, headers={'Referer': config.get_host_url()}).content
+                peers = requests.post(register_url, json=json.dumps({'port': config.get('port')})).content
                 peers = json.loads(peers)
                 registered = True
             except:
@@ -58,11 +58,11 @@ class Network:
         self.add_nodes(peers)
 
     def deregister_with_dnsseeder(self):
-        deregister_url = '{}/deregister'.format(config.get('dnsseeder_url'))
+        deregister_url = '{}/deregister'.format(config.get_dnsseeder_url())
         logger.info('trying to connect to dnsseeder at {}'.format(deregister_url))
 
         try:
-            requests.post(deregister_url, headers={'Referer': config.get_host_url()})
+            requests.post(deregister_url, json=json.dumps({'port': config.get('port')}))
             logger.info('deregistered with dnsseeder')
         except:
             logger.info('could not deregister with dnsseeder')

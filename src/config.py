@@ -1,12 +1,12 @@
 from optparse import OptionParser
 
 default_options = {
-    'host': '127.0.0.1',
+    'host': '0.0.0.0',
     'port': 5000,
-    'dnsseeder_url': 'http://127.0.0.1:3343',
+    'dnsseeder_host': '0.0.0.0',
+    'dnsseeder_port': 5001,
     'debug_path': 'var/debug.log',
     'blockchain_path': 'var/blockchain',
-    'create_genesis_block': False
 }
 
 class Config:
@@ -16,14 +16,17 @@ class Config:
         parser.add_option("--host", dest="host",
                           help="host", default=default_options.get('host'))
 
-        parser.add_option("-p", "--port", dest="port",
+        parser.add_option("--port", dest="port",
                           help="port the server will listen on", default=default_options.get('port'))
 
-        parser.add_option("-l", "--debug_path", dest="debug_path",
-                          help="path to debug log", default=default_options.get('debug_path'))
+        parser.add_option("--dnsseeder_host", dest="dnsseeder_host",
+                          help="dnsseeder_host", default=default_options.get('dnsseeder_host'))
 
-        parser.add_option("--create_genesis_block", dest="create_genesis_block",
-                          help="Set to one if you want to create a new genesis block", default=default_options.get('create_genesis_block'))
+        parser.add_option("--dnsseeder_port", dest="dnsseeder_port",
+                          help="port the dnsseeder will listen on", default=default_options.get('dnsseeder_port'))
+
+        parser.add_option("--debug_path", dest="debug_path",
+                          help="path to debug log", default=default_options.get('debug_path'))
 
         options, args = parser.parse_args()
 
@@ -36,5 +39,8 @@ class Config:
 
     def get_host_url(self):
         return 'http://{}:{}'.format(self.get('host'), self.get('port'))
+
+    def get_dnsseeder_url(self):
+        return 'http://{}:{}'.format(self.get('dnsseeder_host'), self.get('dnsseeder_port'))
 
 config = Config()
