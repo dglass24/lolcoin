@@ -1,0 +1,33 @@
+version: '3'
+services:
+  dnsseeder:
+    container_name: dnsseeder
+    image: dglass/lolcoin
+    ports:
+     - "5001:5001"
+    command: python dnsseeder.py
+  miner1:
+    container_name: miner1
+    image: dglass/lolcoin
+    ports:
+     - "5002:5002"
+    command: python lolcoin.py --dnsseeder_host dnsseeder --port 5002
+    links:
+     - dnsseeder
+  miner2:
+    container_name: miner2
+    image: dglass/lolcoin
+    ports:
+     - "5003:5003"
+    command: python lolcoin.py --dnsseeder_host dnsseeder --port 5003
+    links:
+     - dnsseeder
+  miner3:
+    container_name: miner3
+    image: dglass/lolcoin
+    ports:
+     - "5004:5004"
+    command: python lolcoin.py --dnsseeder_host dnsseeder --port 5004
+    links:
+     - dnsseeder
+
