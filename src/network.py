@@ -1,8 +1,7 @@
 from .config import config
 from .block import Block
 from .logger import logger
-from random import randint
-import requests
+import http
 import json
 import time
 
@@ -31,34 +30,25 @@ class Network:
 
     def broadcast_new_block(self, new_block):
         for node in self.get_nodes():
-            requests.post('http://' + node + '/newblock',
-                          json=new_block.to_json())
+            http.post('http://{}/newblock'.format(node), new_block.to_json())
 
     def broadcast_new_transaction(self, new_txn):
         for node in self.get_nodes():
-            requests.post('http://' + node + '/receivetxn',
-                          json=new_txn)
+            http.post('http://{}/receivetxn'.format(node), new_txn)
 
     def get_max_block_height(self):
+        """
+        Returns the maximum block height from all peers on the network
+        """
         max_height = 0
         max_height_node = None
 
         for node in self.get_nodes():
-            found_max = False
-            tries = 3
-            while not found_max and tries > 0:
-                try:
-                    block_height = requests.get('http://' + node + '/blockheight').content
-                    max_height = max(max_height, int(block_height))
+            block_height = http.get('http://{}/blockheight'.format(node))
+            max_height = max(max_height, int(block_height))
 
-                    if max_height == int(block_height):
-                        max_height_node = node
-
-                    found_max = True
-                except:
-                    time.sleep(randint(1, 5))
-
-                tries -= 1
+            if max_height == int(block_height):
+                max_height_node = node
 
         return max_height, max_height_node
 
@@ -66,7 +56,8 @@ class Network:
         if current_height is None:
             current_height = 0
             for i in range(current_height, max_height):
-                data = requests.post('http://' + peer + '/getblock', json=json.dumps({"height": i})).content
+                url = 'http://{}/getblock'.format(peer)
+                data = http.post(url, {"height": i}).content
                 data = json.loads(data)
 
                 # load block object from json data
@@ -88,7 +79,7 @@ class Network:
             logger.info('trying to connect to dnsseeder at {}'.format(register_url))
 
             try:
-                peers = requests.post(register_url, json=json.dumps({'port': config.get('port')})).content
+                peers = http.post(register_url, {'port': config.get('port')})
                 peers = json.loads(peers)
                 registered = True
             except:
@@ -109,7 +100,7 @@ class Network:
         logger.info('trying to connect to dnsseeder at {}'.format(deregister_url))
 
         try:
-            requests.post(deregister_url, json=json.dumps({'port': config.get('port')}))
+            http.post(deregister_url, {'port': config.get('port')})
             logger.info('deregistered with dnsseeder')
         except:
             logger.info('could not deregister with dnsseeder')

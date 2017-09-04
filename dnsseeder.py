@@ -4,7 +4,7 @@ from flask import jsonify
 from src.config import Config
 from src.logger import logger
 
-import requests
+import src.http as http
 import json
 
 node = Flask(__name__)
@@ -31,13 +31,12 @@ def post_register():
 
         # broadcast new peer to all existing peers
         for peer in existing_peers:
+            peer_url = 'http://{}/addhost'.format(peer)
             try:
-                peer_url = 'http://' + peer + '/addhost'
-                requests.post(peer_url, json=json.dumps({'host': node}))
+                http.post(peer_url, {'host': node})
                 logger.info('notified peer {} about new node {}'.format(peer_url, node))
             except Exception, e:
                 logger.info('could not notify peer {} about new node {}'.format(peer_url, node))
-                logger.error('Exception message: '+ str(e))
 
         return jsonify(list(existing_peers))
 
@@ -52,11 +51,12 @@ def post_deregister():
 
         # broadcast new peer to all existing peers
         for peer in peers:
+            peer_url = 'http://{}/removehost'.format(peer)
             try:
-                requests.post(peer + '/removehost', json=json.dumps({'host': node}))
+                http.post(peer_url, {'host': node})
+                logger.info('notified peer {} about removed node {}'.format(peer_url, node))
             except:
-                # TODO: log failure
-                pass
+                logger.info('could not notify peer {} about removed node {}'.format(peer_url, node))
 
         return 'ok'
 
