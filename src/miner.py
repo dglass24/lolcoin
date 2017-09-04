@@ -14,7 +14,7 @@ class MinerConfig(object):
             'id': 'miner',
             'func': 'src.miner:mine',
             'trigger': 'interval',
-            'seconds': 10
+            'seconds': 300 # 5 minutes
         }
     ]
 
