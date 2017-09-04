@@ -1,71 +1,25 @@
-import datetime as date
 import json
 
 from flask import Flask
 from flask import request
+from flask_apscheduler import APScheduler
 
 from src.block import Block
 from src.blockchain import blockchain
 from src.network import network
 from src.transactions import transactions
-from src.proof_of_work import ProofOfWork
 from src.config import config
 from src.logger import logger
+from src.miner import MinerConfig
+
 
 node = Flask(__name__)
 
-miner_address = 'f38c966908390d7fdffcbbb44b8e0439aa34fd71f1cbdec1cc7d4eecf19515f7'
+txns = transactions
 
 @node.route('/ping', methods=['GET'])
 def get_ping():
     return 'pong\n'
-
-@node.route('/mine', methods=['GET'])
-def mine():
-    # get the last proof of work
-    last_block = blockchain.get_most_recent_block()
-    last_proof = last_block['data']['proof_of_work']
-
-    # find the new proof of work for the current block being mined
-    # The program will hang here until the proof of work is found
-    proof = ProofOfWork(last_proof).calculate()
-
-    # once we find a valid proof of work, we know we can mine a block so
-    # we reward the miner by adding a transaction
-    txns.add_transaction({
-        'from': 'network',
-        'to': miner_address,
-        'amount': 1
-    })
-
-    new_block_data = {
-        'proof_of_work': proof,
-        'transactions': txns.get_transactions()
-    }
-    new_block_index = last_block['index'] + 1
-    new_block_timestamp = str(date.datetime.now())
-    last_block_hash = last_block['hash']
-
-    # create the new block
-    new_block = Block(
-        new_block_index,
-        new_block_timestamp,
-        new_block_data
-    )
-    new_block.hash_block(last_block_hash)
-
-    blockchain.write_block_to_disk(new_block)
-    txns.clear_transactions()
-
-    # notify all nodes in network of new block
-    network.broadcast_new_block(new_block)
-
-    return json.dumps({
-        'index': new_block.index,
-        'timestamp': str(new_block.timestamp),
-        'data': new_block.data,
-        'hash': new_block.hash,
-    })
 
 @node.route('/addtxn', methods=['POST'])
 def post_add_transaction():
@@ -136,7 +90,13 @@ if __name__ == '__main__':
     blockchain.resolve_blockchain()
     blockchain.validate_genesis_block()
 
-    txns = transactions
+    node.config.from_object(MinerConfig())
+
+    scheduler = APScheduler()
+    # it is also possible to enable the API directly
+    # scheduler.api_enabled = True
+    scheduler.init_app(node)
+    scheduler.start()
 
     node.run(host=config.get('host'), port=config.get('port'))
 

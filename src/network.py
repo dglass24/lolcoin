@@ -1,6 +1,7 @@
 from .config import config
 from .block import Block
 from .logger import logger
+from random import randint
 import requests
 import json
 import time
@@ -43,11 +44,21 @@ class Network:
         max_height_node = None
 
         for node in self.get_nodes():
-            block_height = requests.get('http://' + node + '/blockheight').content
-            max_height = max(max_height, int(block_height))
+            found_max = False
+            tries = 3
+            while not found_max and tries > 0:
+                try:
+                    block_height = requests.get('http://' + node + '/blockheight').content
+                    max_height = max(max_height, int(block_height))
 
-            if max_height == int(block_height):
-                max_height_node = node
+                    if max_height == int(block_height):
+                        max_height_node = node
+
+                    found_max = True
+                except:
+                    time.sleep(randint(1, 5))
+
+                tries -= 1
 
         return max_height, max_height_node
 
