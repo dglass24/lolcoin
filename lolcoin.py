@@ -1,4 +1,5 @@
 import json
+import time
 
 from flask import Flask
 from flask import request
@@ -98,7 +99,7 @@ if __name__ == '__main__':
     scheduler.init_app(node)
     scheduler.start()
 
-    node.run(host=config.get('host'), port=config.get('port'))
+    node.run(threaded=True, host=config.get('host'), port=config.get('port'))
 
     # deregister with dnsseeder when server is killed
     network.deregister_with_dnsseeder()

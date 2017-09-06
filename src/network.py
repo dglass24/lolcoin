@@ -57,7 +57,7 @@ class Network:
             current_height = 0
             for i in range(current_height, max_height):
                 url = 'http://{}/getblock'.format(peer)
-                data = http.post(url, {"height": i}).content
+                data = http.post(url, {"height": i})
                 data = json.loads(data)
 
                 # load block object from json data
