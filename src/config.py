@@ -1,13 +1,17 @@
 import os
 from optparse import OptionParser
 
-print os.environ['HOME']
+def get_env(var, default):
+    if var in os.environ:
+        return os.environ[var]
+    else:
+        return default
 
 default_options = {
-    'miner_host': os.environ['MINERHOST'] or '0.0.0.0',
-    'miner_port': os.environ['MINERPORT'] or 5000,
-    'seed_host': os.environ['SEEDHOST'] or '0.0.0.0',
-    'seed_port': os.environ['SEEDPORT'] or 5000,
+    'miner_host': get_env('MINERHOST', '0.0.0.0'),
+    'miner_port': get_env('MINERPORT', 5000),
+    'seed_host': get_env('SEEDHOST', '0.0.0.0'),
+    'seed_port': get_env('SEEDPORT', 5000),
     'debug_path': 'var/debug.log',
     'blockchain_path': 'var/blockchain',
 }
