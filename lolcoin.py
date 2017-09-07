@@ -84,10 +84,6 @@ def post_removehost():
     return 'ok'
 
 if __name__ == '__main__':
-    # create var dir if it doesn't exist
-    if not os.path.isfile('var/debug.log'):
-        open('var/debug.log', 'a').close()
-
     logger.info('starting up node at {}'.format(config.get_host_url()))
 
     # register with dnsseeder so other peers can be notified that this node is online

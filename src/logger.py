@@ -1,7 +1,12 @@
 from .config import Config
 import logging
+import os
 
 config = Config()
+
+# create var dir if it doesn't exist
+if not os.path.isfile('var/debug.log'):
+    open('var/debug.log', 'a').close()
 
 # create logger with 'spam_application'
 logger = logging.getLogger('lolcoin_miner')

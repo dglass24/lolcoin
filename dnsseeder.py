@@ -2,11 +2,10 @@ from flask import Flask
 from flask import request
 from flask import jsonify
 from src.config import Config
-from src.logger import logger
-
 import src.http as http
 import json
 import os
+from src.logger import logger
 
 node = Flask(__name__)
 
@@ -62,10 +61,6 @@ def post_deregister():
         return 'ok'
 
 if __name__ == '__main__':
-    # create var dir if it doesn't exist
-    if not os.path.isfile('var/debug.log'):
-        open('var/debug.log', 'a').close()
-
     node.run(port=config.get('seed_port'))
 
 
