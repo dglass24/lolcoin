@@ -4,8 +4,8 @@ from optparse import OptionParser
 print os.environ['HOME']
 
 default_options = {
-    'miner_host': '0.0.0.0',
-    'miner_port': 5001,
+    'miner_host': os.environ['MINERHOST'] or '0.0.0.0',
+    'miner_port': os.environ['MINERPORT'] or 5000,
     'seed_host': os.environ['SEEDHOST'] or '0.0.0.0',
     'seed_port': os.environ['SEEDPORT'] or 5000,
     'debug_path': 'var/debug.log',
