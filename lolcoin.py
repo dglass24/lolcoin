@@ -1,5 +1,6 @@
 import json
 import time
+import os
 
 from flask import Flask
 from flask import request
@@ -83,6 +84,10 @@ def post_removehost():
     return 'ok'
 
 if __name__ == '__main__':
+    # create blockchain file if it does not exist
+    if not os.path.isfile('var/debug.log'):
+        open('var/debug.log', 'a').close()
+
     logger.info('starting up node at {}'.format(config.get_host_url()))
 
     # register with dnsseeder so other peers can be notified that this node is online
