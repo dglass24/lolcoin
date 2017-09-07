@@ -5,8 +5,9 @@ import os
 config = Config()
 
 # create var dir if it doesn't exist
-if not os.path.isfile('var/debug.log'):
-    open('var/debug.log', 'a').close()
+basedir = os.path.dirname('var/')
+if not os.path.exists(basedir):
+    os.makedirs(basedir)
 
 # create logger with 'spam_application'
 logger = logging.getLogger('lolcoin_miner')
