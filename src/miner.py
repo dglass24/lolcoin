@@ -8,7 +8,7 @@ from src.proof_of_work import ProofOfWork
 from src.block import Block
 from src.logger import logger
 
-MINER_ADDRESS = 'f38c966908390d7fdffcbbb44b8e0439aa34fd71f1cbdec1cc7d4eecf19515f7'
+MINER_ADDRESS = 'DeZXkR1sTkTUFvBeeovQMahZeEQUbohaof'
 MINER_REWARD = 1
 BLOCK_TIME_SECONDS = 300 # 5 minutes
 

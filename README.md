@@ -4,6 +4,11 @@ LOLcoin is a cryptocurrency built in python.
  
 **<span style="color:red">LOLcoin is still in development. Do not use this in production.</span>**
 
+## Generate a new wallet address
+```
+python bin/generate_wallet.py 
+```
+
 ## Running the dnsseeder
 The dnsseeder should be the first node you run when starting your network. This server keeps track of all the miner nodes connected to the network and will notify all existing miner nodes when a node is added or removed from the network.
 
