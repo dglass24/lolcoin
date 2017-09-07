@@ -61,7 +61,7 @@ def post_deregister():
         return 'ok'
 
 if __name__ == '__main__':
-    node.run(host='0.0.0.0')
+    node.run(threaded=True, host='0.0.0.0')
 
 
 

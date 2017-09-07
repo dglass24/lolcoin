@@ -7,3 +7,5 @@ if [ `dirname $0` == '.' ]
 fi
 
 docker build -t dglass/lolcoin .
+
+docker push dglass/lolcoin
