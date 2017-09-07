@@ -84,7 +84,7 @@ def post_removehost():
     return 'ok'
 
 if __name__ == '__main__':
-    # create blockchain file if it does not exist
+    # create var dir if it doesn't exist
     if not os.path.isfile('var/debug.log'):
         open('var/debug.log', 'a').close()
 
