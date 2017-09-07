@@ -61,7 +61,7 @@ def post_deregister():
         return 'ok'
 
 if __name__ == '__main__':
-    node.run(host=config.get('dnsseeder_host'), port=config.get('dnsseeder_port'))
+    node.run(port=config.get('seed_port'))
 
 
 

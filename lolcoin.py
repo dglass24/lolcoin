@@ -99,7 +99,7 @@ if __name__ == '__main__':
     scheduler.init_app(node)
     scheduler.start()
 
-    node.run(threaded=True, host=config.get('host'), port=config.get('port'))
+    node.run(threaded=True, host=config.get('miner_host'), port=config.get('miner_port'))
 
     # deregister with dnsseeder when server is killed
     network.deregister_with_dnsseeder()

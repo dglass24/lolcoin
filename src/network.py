@@ -79,10 +79,11 @@ class Network:
             logger.info('trying to connect to dnsseeder at {}'.format(register_url))
 
             try:
-                peers = http.post(register_url, {'port': config.get('port')})
+                peers = http.post(register_url, {'port': config.get('seed_port')})
                 peers = json.loads(peers)
                 registered = True
-            except:
+            except Exception, e:
+                logger.error('error: '+ repr(e))
                 logger.info('could not connect to dnsseeder, retrying in 30 seconds')
                 time.sleep(30)
 
