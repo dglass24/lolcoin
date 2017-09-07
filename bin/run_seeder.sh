@@ -1,10 +1,16 @@
 #!/bin/sh
 
-SEEDHOST=`python bin/find_ip.py`
-SEEDPORT=5000
+MINERHOST=`python bin/find_ip.py`
+MINERPORT=5000
+SEEDHOST='69.164.201.46'
 
+# pull latest image
+docker pull dglass/lolcoin
+
+# start the container
 docker run -d \
+    --env MINERHOST=$MINERHOST \
+    --env MINERPORT=$MINERPORT \
     --env SEEDHOST=$SEEDHOST \
-    --env SEEDPORT=$SEEDPORT \
-    -p $SEEDPORT:5000 \
-    dglass/lolcoin python dnsseeder.py
+    -p $MINERPORT:5000 \
+    dglass/lolcoin python lolcoin.py

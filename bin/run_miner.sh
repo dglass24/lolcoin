@@ -1,7 +1,7 @@
 #!/bin/sh
 
 MINERHOST=`python bin/find_ip.py`
-MINERPORT=5000
+MINERPORT=5001
 
 # pull latest image
 docker pull dglass/lolcoin
