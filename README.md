@@ -2,7 +2,7 @@
 
 LOLcoin is a cryptocurrency built in python.
  
-**<span style="color:red">LOLcoin is still in development. Do not use this in production.</span>**
+**<span style="color:red">LOLcoin is not intended for real world use. I built LOLcoin to learn how cryptocurrencies and mining work.</span>**
 
 ## Generate a new wallet address
 ```
