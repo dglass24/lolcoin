@@ -1,15 +1,33 @@
 import ecdsa
 import hashlib
+from hashlib import sha256
 import struct
 
 b58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+digits58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
 class Wallet(object):
     def __init__(self):
-        self.private_key = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1).to_string().encode('hex').upper()
+        pass
+
+    def generate(self):
+        self.private_key = ecdsa.SigningKey.generate(curve=ecdsa.SECP256k1).to_string().encode('hex')
         self.private_key_wif = self.privateKeyToWif(self.private_key)
         self.public_key = self.privateKeyToPublicKey(self.private_key)
         self.address = self.keyToAddr(self.private_key)
+
+    def verify(self, address):
+        return self.check_bc(address)
+
+    def decode_base58(self, bc, length):
+        n = 0
+        for char in bc:
+            n = n * 58 + digits58.index(char)
+        return ('%%0%dx' % (length << 1) % n).decode('hex')[-length:]
+
+    def check_bc(self, bc):
+        bcbytes = self.decode_base58(bc, 25)
+        return bcbytes[-4:] == sha256(sha256(bcbytes[:-4]).digest()).digest()[:4]
 
     # Returns byte string value, not hex string
     def varint(self, n):
@@ -115,7 +133,8 @@ class Wallet(object):
     def privateKeyToPublicKey(self, s):
         sk = ecdsa.SigningKey.from_string(s.decode('hex'), curve=ecdsa.SECP256k1)
         vk = sk.verifying_key
-        return ('\143' + sk.verifying_key.to_string()).encode('hex').upper()
+        return (sk.verifying_key.to_string()).encode('hex')
+        #return ('\80' + sk.verifying_key.to_string()).encode('hex')
 
     def pubKeyToAddr(self, s):
         ripemd160 = hashlib.new('ripemd160')
@@ -126,7 +145,11 @@ class Wallet(object):
         return self.pubKeyToAddr(self.privateKeyToPublicKey(s))
 
 wallet = Wallet()
+wallet.generate()
+
 print 'private key:\t\t{}'.format(wallet.private_key)
 print 'private key wif:\t\t{}'.format(wallet.private_key_wif)
 print 'public key:\t\t{}'.format(wallet.public_key)
 print 'wallet:\t\t{}'.format(wallet.address)
+
+print wallet.verify(wallet.address)

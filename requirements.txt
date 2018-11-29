@@ -22,7 +22,7 @@ pybitcoin==0.9.9
 python-bitcoinrpc==0.1
 python-dateutil==2.6.1
 pytz==2017.2
-requests==2.18.4
+requests==2.20.0
 six==1.10.0
 tzlocal==1.4
 urllib3==1.22
